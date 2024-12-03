@@ -1,0 +1,16 @@
+# OpenVPN 2FA PAM
+
+# Authenticate the user via UNIX passwords
+auth       required     pam_unix.so
+
+# Add Google Authenticator 2FA
+auth       requisite     /lib/x86_64-linux-gnu/security/pam_google_authenticator.so secret=/opt/openvpn/google-auth/${USER}/${USER} user=root authtok_prompt=pin
+
+# Handle account management
+account    required     pam_unix.so
+account    required     pam_nologin.so
+
+# Include PAM-related environment setup
+session    required     pam_limits.so
+session    optional     pam_unix.so
+
