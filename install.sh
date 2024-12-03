@@ -5,7 +5,7 @@
 # and adjusted specifically for ubuntu 24.04
 
 
-apt install -y libpam-google-authenticator pwgen qrencode zip msmtp msmtp-mta mailutils
+apt install -y libpam-google-authenticator pwgen qrencode zip msmtp msmtp-mta mutt
 mkdir -p /opt/openvpn/clients
 cp files/msmtprc.txt $HOME/.msmtprc
 cp files/etc-pamd-openvpn /etc/pam.d/openvpn

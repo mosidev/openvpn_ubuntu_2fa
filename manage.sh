@@ -30,7 +30,7 @@ function emailProfile() {
 use the attached VPN profile to connect using OpenVPN Connect.
     """
 
-    echo "${content}" | mailx -s "${subject}" -A "${CLIENT_DIR}/${CLIENT}.zip" "${USER_EMAIL}" || { echo "${R}${B}error mailing profile to client: ${CLIENT}${C}"; exit 1; }
+    echo "${content}" | mutt -s "${subject}" -a "${CLIENT_DIR}/${CLIENT}.zip" -- "${USER_EMAIL}" || { echo "${R}${B}error mailing profile to client: ${CLIENT}${C}"; exit 1; }
     echo "The user profile successfully sent to: ${USER_EMAIL}"
 }
 

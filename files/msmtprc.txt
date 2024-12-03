@@ -2,7 +2,7 @@ defaults
 tls on
 tls_starttls on
 tls_trust_file /etc/ssl/certs/ca-certificates.crt
-logfile /var/log/msmtp.log
+logfile ~/.msmtp.log
 
 account ovpn
 host smtp.gmail.com
