@@ -25,7 +25,7 @@ fi
 function emailProfile() {
     local subject="Your OpenVPN profile"
     local content="""
-##########   OpenVPN connection profile for (${ISSUER_NAME})   ##########
+OpenVPN connection profile for (${ISSUER_NAME})
 
 use the attached VPN profile to connect using OpenVPN Connect.
     """
@@ -44,8 +44,8 @@ function newClient() {
     else
         echo -e "${W}new user does not exist, creating..${C}"
         # generate user password
-        mkdir "${CLIENT_DIR}/${CLIENT}"
-        mkdir "${USER_DATA_DIR}/${CLIENT}"
+        mkdir -p "${CLIENT_DIR}/${CLIENT}"
+        mkdir -p "${USER_DATA_DIR}/${CLIENT}"
         echo "${CLIENT}" > "${USER_DATA_DIR}/${CLIENT}/pass.txt"
         PW=$(pwgen -s 15 1) || { echo -e "${R}${B}Error generating password for ${CLIENT} ${C}"; exit 1; }
         echo "${PW}" >> "${USER_DATA_DIR}/${CLIENT}/pass.txt"
@@ -83,7 +83,6 @@ function newClient() {
     } >>"${CLIENT_DIR}/${CLIENT}/${CLIENT}.ovpn"
 
     chown -R root:root "${CLIENT_DIR}/${CLIENT}"
-    chmod -R 600 "${CLIENT_DIR}/${CLIENT}"
 
     echo -e "${W}The configuration file has been written to ${CLIENT_DIR}/${CLIENT}/${CLIENT}.ovpn${C}"
 }
