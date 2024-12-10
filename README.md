@@ -1,11 +1,10 @@
-# OpenVPN Community + 2FA with Google Authenticator
+# OpenVPN Community + 2FA with Google Authenticator + Ubuntu
 
-see https://perfecto25.medium.com/openvpn-community-2fa-with-google-authenticator-4f2a7cb08128
+This project adds two-factor authentication (2FA) to OpenVPN Community on Ubuntu.
+To install OpenVPN on Ubuntu, use the following script:
+https://github.com/Nyr/openvpn-install
 
-for full description of this setup
+To add 2FA to Ubuntu, the following project has been forked and modified:
+https://github.com/perfecto25/openvpn_2fa
 
----
-
-uses a modfied version of installation script from https://github.com/angristan/openvpn-install
-
-specifically tailored for Rocky Linux 8
+This script has been tested on Ubuntu 24.04
