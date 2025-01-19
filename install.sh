@@ -8,6 +8,7 @@
 apt install -y libpam-google-authenticator pwgen qrencode zip msmtp msmtp-mta mutt
 mkdir -p /opt/openvpn/clients
 cp files/msmtprc.txt $HOME/.msmtprc
+cp files/muttrc.txt $HOME/.muttrc
 cp files/etc-pamd-openvpn /etc/pam.d/openvpn
 cp files/client-template.txt /opt/openvpn/clients/
 

@@ -16,11 +16,6 @@ W="\e[0;97m"
 B="\e[1m"
 C="\e[0m"
 
-if [ $# -lt 1 ]; then
-    echo -e "${W}usage:\n./manage.sh create/revoke <username>\n./manage.sh status${C}"
-    exit 1
-fi
-
 
 function emailProfile() {
     local subject="Your OpenVPN profile"
@@ -34,7 +29,6 @@ use the attached VPN profile to connect using OpenVPN Connect.
     echo "The user profile successfully sent to: ${USER_EMAIL}"
 }
 
-
 function newClient() {
     CLIENT=${1:?}
     CLIENT_EXISTS=$(tail -n +2 /etc/openvpn/server/easy-rsa/pki/index.txt | grep -c -E "/CN=${CLIENT}\$")
@@ -46,8 +40,8 @@ function newClient() {
         # generate user password
         mkdir -p "${CLIENT_DIR}/${CLIENT}"
         mkdir -p "${USER_DATA_DIR}/${CLIENT}"
-        echo "${CLIENT}" > "${USER_DATA_DIR}/${CLIENT}/pass.txt"
-        PW=$(pwgen -s 15 1) || { echo -e "${R}${B}Error generating password for ${CLIENT} ${C}"; exit 1; }
+        #echo "${CLIENT}" > "${USER_DATA_DIR}/${CLIENT}/pass.txt"
+        PW=$(pwgen -scB 15 1) || { echo -e "${R}${B}Error generating password for ${CLIENT} ${C}"; exit 1; }
         echo "${PW}" >> "${USER_DATA_DIR}/${CLIENT}/pass.txt"
 
         cd /etc/openvpn/server/easy-rsa/ || return
@@ -65,7 +59,7 @@ function newClient() {
     echo "${CLIENT}:${PW}" | chpasswd
     chage -m 0 -M 99999 -I -1 -E -1 "${CLIENT}"
 
-    # Generates the custom client.ovpn
+    # generates the custom client.ovpn
     cp "${CLIENT_DIR}/client-template.txt" "${CLIENT_DIR}/${CLIENT}/${CLIENT}.ovpn"
     {
         echo "<ca>"
@@ -87,23 +81,14 @@ function newClient() {
     echo -e "${W}The configuration file has been written to ${CLIENT_DIR}/${CLIENT}/${CLIENT}.ovpn${C}"
 }
 
-
-if [ ! "${ACTION}" == "create" ] && [ ! "${ACTION}" == "revoke" ] && [ ! "${ACTION}" == "status" ]
-then
-    echo -e "${W}usage:\n./manage.sh create <username> <email>\n./manage revoke <username>\n./manage.sh status${C}"
-    exit 1
-fi
-
-cd /opt/openvpn || exit 1
-
-if [ "${ACTION}" == "create" ]; then
+function createUser() {
     [ -z "${ISSUER_NAME}" ] && { echo -e "${R}Update the ISSUER_NAME variable at the top of this file with a value, such as your company name.${C}"; exit 1; }
     [ -z "${CLIENT}" ] && { echo -e "${R}Provide a username to create${C}"; exit 1; }
     [ -z "${USER_EMAIL}" ] && { echo -e "${R}Provide an email to create${C}"; exit 1; }
 
     newClient "${CLIENT}" || { echo -e "${R}${B}Error generating user VPN profile${C}"; exit 1; }
 
-    ### setup Google Authenticator
+    # setup Google Authenticator
     mkdir -p "${GOOGLE_AUTH_DIR}/${CLIENT}"
     mkdir -p "${USER_DATA_DIR}/${CLIENT}"
     google-authenticator -t -d -f -q -r 3 -R 600 -w 5 -C -s "${GOOGLE_AUTH_DIR}/${CLIENT}/${CLIENT}" || { echo -e "${R}${B}error generating QR code${C}"; exit 1; }
@@ -115,9 +100,9 @@ if [ "${ACTION}" == "create" ]; then
     zip -r -m -q -P "${PW}" "${CLIENT}.zip" "${CLIENT}"
     cd -
     emailProfile || { echo -e "${R}${B}Error sending profile to new user ${CLIENT} ${C}"; exit 1; }
-fi
+}
 
-if [ "${ACTION}" == "revoke" ]; then
+function revokeUser() {
     [ -z "${CLIENT}" ] &&  { echo -e "${R}Provide a username to revoke${C}"; exit 1; }
 
     cd /etc/openvpn/server/easy-rsa/ || exit 1
@@ -133,16 +118,47 @@ if [ "${ACTION}" == "revoke" ]; then
     # remove client from PKI index
     sed -i "/CN=${CLIENT}$/d" /etc/openvpn/server/easy-rsa/pki/index.txt
 
-    # remove user OS acct that was created by OpenVPN manage.sh script
-    id "${CLIENT}" && userdel -r -f "${CLIENT}"
-
     rm -f "${CLIENT_DIR:?}/${CLIENT:?}.zip"
     rm -rf "${GOOGLE_AUTH_DIR:?}/${CLIENT:?}"
     rm -rf "${USER_DATA_DIR:?}/${CLIENT:?}"
 
+    # remove user OS acct that was created by OpenVPN manage.sh script
+    id "${CLIENT}" && userdel -r -f "${CLIENT}" || { echo -e "${R}${B}Error revoking ${CLIENT} ${C}"; exit 1; }
     echo -e "${G}VPN access for $CLIENT is revoked${C}"
-fi
+}
 
-if [ "${ACTION}" == "status" ]; then
+function refreshUser() {
+    [ -z "${ISSUER_NAME}" ] && { echo -e "${R}Update the ISSUER_NAME variable at the top of this file with a value, such as your company name.${C}"; exit 1; }
+    [ -z "${CLIENT}" ] && { echo -e "${R}Provide a username to refresh${C}"; exit 1; }
+    [ -z "${USER_EMAIL}" ] && { echo -e "${R}Provide an email to refresh${C}"; exit 1; }
+
+    revokeUser
+    createUser
+}
+
+function statusUsers() {
     cat /etc/openvpn/server/easy-rsa/pki/index.txt | grep "^V" | grep -v "server_"
+}
+
+
+cd /opt/openvpn || exit 1
+
+if [ "${ACTION}" == "create" ]; then
+    createUser
+elif [ "${ACTION}" == "revoke" ]; then
+    revokeUser
+elif [ "${ACTION}" == "refresh" ]; then
+    refreshUser
+elif [ "${ACTION}" == "status" ]; then
+    statusUsers
+else
+    message="""
+${W}usage:
+  ./manage.sh create <username> <email>
+  ./manage.sh revoke <username>
+  ./manage.sh refresh <username> <email>
+  ./manage.sh status${C}
+    """
+    echo -e "${message}"
+    exit 1
 fi
