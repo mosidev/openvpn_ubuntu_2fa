@@ -45,7 +45,7 @@ function newClient() {
         echo "${PW}" >> "${USER_DATA_DIR}/${CLIENT}/pass.txt"
 
         cd /etc/openvpn/server/easy-rsa/ || return
-        ./easyrsa --days=${EXPIRE_DAYS} build-client-full "${CLIENT}" nopass <<<yes
+        ./easyrsa --days=${EXPIRE_DAYS}  --req-email=${USER_EMAIL}  build-client-full "${CLIENT}" nopass <<<yes
         echo -e "${G}Client $CLIENT added.${C}"
     fi
 
@@ -116,7 +116,7 @@ function revokeUser() {
     chmod 644 /etc/openvpn/crl.pem
 
     # remove client from PKI index
-    sed -i "/CN=${CLIENT}$/d" /etc/openvpn/server/easy-rsa/pki/index.txt
+    sed -i "/CN=${CLIENT}/d" /etc/openvpn/server/easy-rsa/pki/index.txt
 
     rm -f "${CLIENT_DIR:?}/${CLIENT:?}.zip"
     rm -rf "${GOOGLE_AUTH_DIR:?}/${CLIENT:?}"
