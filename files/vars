@@ -1,0 +1,7 @@
+set_var EASYRSA_DN	          "org"
+set_var EASYRSA_REQ_EMAIL	  "me@example.net"
+set_var EASYRSA_REQ_COUNTRY	  "IR"
+set_var EASYRSA_REQ_PROVINCE  "TEHRAN"
+set_var EASYRSA_REQ_CITY	  "TEHRAN"
+set_var EASYRSA_REQ_ORG	      "Tosan"
+set_var EASYRSA_REQ_OU		  "OU"
